@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'history_screen.dart';
 import 'package:work/models/history_item.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -23,6 +24,13 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     "RUB": 91.2,
     "KZT": 486.5,
   };
+
+  static const String flagUsd = 'https://flagcdn.com/w20/us.png';
+  static const String flagEur = 'https://flagcdn.com/w20/eu.png';
+  static const String flagRub = 'https://flagcdn.com/w20/ru.png';
+  static const String flagKzt = 'https://flagcdn.com/w20/kz.png';
+  static const String decorConvert =
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=64&q=60';
 
   void convertCurrency() {
     double? amount = double.tryParse(_amountController.text);
@@ -74,11 +82,61 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     );
   }
 
+  Widget flagForCurrency(String cur) {
+    String url;
+    switch (cur) {
+      case 'USD':
+        url = flagUsd;
+        break;
+      case 'EUR':
+        url = flagEur;
+        break;
+      case 'RUB':
+        url = flagRub;
+        break;
+      case 'KZT':
+        url = flagKzt;
+        break;
+      default:
+        url = flagUsd;
+    }
+
+    return CachedNetworkImage(
+      imageUrl: url,
+      width: 32,
+      height: 32,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => const SizedBox(
+          width: 32,
+          height: 32,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+      errorWidget: (context, url, error) =>
+      const Icon(Icons.image, size: 32),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Конвертер валют"),
+        title: Row(
+          children: [
+            CachedNetworkImage(
+              imageUrl: decorConvert,
+              width: 32,
+              height: 32,
+              placeholder: (context, url) => const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              errorWidget: (context, url, error) =>
+              const Icon(Icons.currency_exchange),
+            ),
+            const SizedBox(width: 8),
+            const Text("Конвертер валют"),
+          ],
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -97,6 +155,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: "Введите сумму",
+                prefixIcon: Icon(Icons.attach_money),
               ),
             ),
             const SizedBox(height: 16),
@@ -105,44 +164,65 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: fromCurrency,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
                       labelText: "Из валюты",
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: flagForCurrency(fromCurrency),
+                      ),
                     ),
                     items: currencyRates.keys
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map((e) => DropdownMenuItem(
+                        value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (value) => setState(() => fromCurrency = value!),
+                    onChanged: (value) =>
+                        setState(() => fromCurrency = value!),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: toCurrency,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
                       labelText: "В валюту",
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: flagForCurrency(toCurrency),
+                      ),
                     ),
                     items: currencyRates.keys
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map((e) => DropdownMenuItem(
+                        value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (value) => setState(() => toCurrency = value!),
+                    onChanged: (value) =>
+                        setState(() => toCurrency = value!),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: convertCurrency,
+              icon: CachedNetworkImage(
+                imageUrl: decorConvert,
+                width: 24,
+                height: 24,
+                placeholder: (context, url) =>
+                const CircularProgressIndicator(strokeWidth: 2),
+                errorWidget: (context, url, error) =>
+                const Icon(Icons.sync),
+              ),
+              label: const Text("Конвертировать"),
               style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50)),
-              child: const Text("Конвертировать"),
             ),
             const SizedBox(height: 16),
             Text(
               result,
-              style:
-              const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
